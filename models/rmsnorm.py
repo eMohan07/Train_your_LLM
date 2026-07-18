@@ -1,9 +1,19 @@
+import torch
+import torch.nn as nn
+
+
 class RMSNorm(nn.Module):
-    def __init__(self, d_model, eps=1e-8):
+
+    def __init__(self, d_model, eps=1e-6):
         super().__init__()
+
         self.eps = eps
-        self.scale = nn.Parameter(torch.ones(d_model))
+        self.weight = nn.Parameter(torch.ones(d_model))
 
     def forward(self, x):
-        norm_x = x.norm(dim=-1, keepdim=True)
-        return self.scale * (x / (norm_x + self.eps))
+
+        rms = torch.rsqrt(
+            x.pow(2).mean(dim=-1, keepdim=True) + self.eps
+        )
+
+        return x * rms * self.weight

@@ -1,12 +1,12 @@
 import torch
-# import torch.nn as nn
-# import torch.nn.functional as F
-# import math
-# import time
-# import os
+import torch.nn as nn
+import torch.nn.functional as F
+import math
+import time
+import os
 
 from utils.tokenizer import CharacterTokenizer
-
+from utils.dataset import ShakespeareDataset
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
 print("Using device:",device)
@@ -15,8 +15,8 @@ dataset = ShakespeareDataset(tokenizer)
 
 x,y = dataset.get_batch(
     split = "train",
-    batch_size=4,
-    context_length=8,
+    batch_size=6,
+    context_length=10,
     device=device,
 )
 print()
@@ -41,3 +41,26 @@ print(tokenizer.decode(y[0].tolist()))
 # print("Sample:",sample)
 # print("Encoded:",encoded)
 # print("Decoded:",tokenizer.decode(encoded))
+
+from models.rmsnorm import RMSNorm
+
+print("\n--- RMSNorm Test ---")
+
+d_model = 256
+
+norm = RMSNorm(d_model).to(device)
+
+test_input = torch.randn(
+    4,
+    8,
+    d_model,
+    device=device
+)
+
+output = norm(test_input)
+
+print("Input shape :", test_input.shape)
+print("Output shape:", output.shape)
+
+print("Input RMS :", test_input.pow(2).mean(dim=-1).sqrt().mean().item())
+print("Output RMS:", output.pow(2).mean(dim=-1).sqrt().mean().item())
